@@ -1,0 +1,63 @@
+/**
+ *  @(#) eventhandler_test.c
+ *  @author quickpoint AT HUST
+ *  @version 1.0
+ */
+#include "eventhandler.h"
+#include "eventhandler_print.h"
+#include "eventhandler_limit.h"
+#include "eventhandler_combine.h"
+#include "util.h"
+
+void test_one(void) {
+    int i = 0;
+
+    topic_t a_topic = {.key = (void*)1, .compare = &int_compare};
+     
+    event_handler* print = event_handler_print_create(a_topic);
+
+    event_handler* limit_print = event_handler_limit_create(print, 3);
+
+    for( i = 0; i < 5; i++ ) {
+        if(event_handler_should_handle(print, a_topic)) {
+                event_handler_handle(print, a_topic, "hello", NULL);
+        }
+
+        if(event_handler_should_handle(limit_print, a_topic)) {
+            event_handler_handle(limit_print, a_topic, "world", NULL);
+        }
+    }
+    
+    event_handler_destroy(print);
+    event_handler_destroy(limit_print);
+}
+
+int event_handler_print_handle(event_handler* thiz, topic_t topic, void* data, void* context) {
+    return_val_if_fail(NULL != data || NULL != context, -1);
+
+    printf("I am print handler.\n");
+    printf("data: %s\n", (const char*) data);
+
+    return 0;
+}
+
+void test_two() {
+     
+    event_handler_handle_func handleFuncs[] = {
+        event_handler_print_handle,
+        event_handler_print_handle,
+       };
+
+   int nr = ARRAY_SIZE(handleFuncs);
+   topic_t b_topic = {.key=(void*) "test.topic", .compare = &string_compare };
+   event_handler* combine = event_handler_combine_create(b_topic, handleFuncs, nr);
+    
+   event_handler_handle(combine, b_topic, "hello", NULL);
+   event_handler_destroy(combine);
+}
+
+int main(int argc, char* argv[]) {
+    test_one();
+    test_two();
+}
+
