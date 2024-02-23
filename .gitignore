@@ -1,0 +1,7 @@
+/cmake-build-debug/
+/cmake-build-release/
+/bin/
+/mingw32_x86_build/
+/clang_build/
+/gnu_build/
+/.idea/
